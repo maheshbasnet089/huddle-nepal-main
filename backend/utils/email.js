@@ -11,7 +11,7 @@ const sendMail = async (options) => {
       pass: process.env.EMAIL_PASS,
     },
   });
-
+  //test comment
   const mailOptions = {
     from: "Huddle Nepal<fghtcorona@gmail.com>",
     to: options.email,
