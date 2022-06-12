@@ -150,3 +150,17 @@ exports.resetPassword = async (req, res, next) => {
   //sign in token
   createToken(user, 201, res);
 };
+
+exports.updatePassword = async (req, res, next) => {
+  //find user from req object
+  const user = await User.findById(req.user._id).select("+password");
+  const currentPassword = req.body.currentPassword;
+  if (!(await user.comparePassword(currentPassword, user.password))) {
+    return res.status(401).send("Please Enter correct Password");
+  }
+  //if password matches update
+  user.password = req.body.newPassword;
+  user.passwordConfirm = req.body.passwordConfirm;
+  await user.save(); // we do .save() but not findBYIDAndupdate because there is no validation in findbyidandupdate and presave hooks does not come inton action
+  createToken(user, 200, res);
+};
