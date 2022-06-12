@@ -2,6 +2,7 @@ const User = require("../model/userModel");
 const jwt = require("jsonwebtoken");
 const { promisify } = require("util");
 const sendMail = require("../utils/email");
+const { createHash } = require("crypto");
 
 const signinToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -128,4 +129,24 @@ exports.forgotPassword = async (req, res, next) => {
     await user.save({ validateBeforeSave: false });
     return res.status(500).send("Some Internal Error Occured!");
   }
+};
+
+exports.resetPassword = async (req, res, next) => {
+  const notHashedToken = req.params.token;
+  const hashedToken = createHash("sha256").update(notHashedToken).digest("hex");
+  const user = await User.findOne({
+    passwordResetToken: hashedToken,
+    passwordResetTokenExpiresIn: { $gt: Date.now() },
+  });
+
+  if (!user) {
+    return res.status(400).send("Token is incorrect or expired");
+  }
+  user.password = req.body.password;
+  user.passwordConfirm = req.body.passwordConfirm;
+  user.passwordResetTokenExpiresIn = undefined;
+  user.passwordResetToken = undefined;
+  await user.save();
+  //sign in token
+  createToken(user, 201, res);
 };

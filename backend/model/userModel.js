@@ -81,9 +81,11 @@ userSchema.methods.passwordChangedAfter = function (tokenCreatedDate) {
 //create Reset Token for forgot password
 userSchema.methods.createResetToken = function () {
   const resetToken = randomBytes(32).toString("hex");
+  console.log(resetToken);
   this.passwordResetToken = createHash("sha256")
     .update(resetToken)
     .digest("hex");
+
   this.passwordResetTokenExpiresIn = Date.now() + 10 * 60 * 1000;
   return resetToken;
 };
