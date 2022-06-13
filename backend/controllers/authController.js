@@ -164,3 +164,14 @@ exports.updatePassword = async (req, res, next) => {
   await user.save(); // we do .save() but not findBYIDAndupdate because there is no validation in findbyidandupdate and presave hooks does not come inton action
   createToken(user, 200, res);
 };
+
+exports.restrictTo = (...roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return res
+        .status(401)
+        .send("You don't have permissin to access this route");
+    }
+    next();
+  };
+};
