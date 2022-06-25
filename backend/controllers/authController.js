@@ -2,6 +2,7 @@ const User = require("../model/userModel");
 const jwt = require("jsonwebtoken");
 const { promisify } = require("util");
 const sendMail = require("../utils/email");
+const { createHash } = require("crypto");
 
 const signinToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -128,4 +129,49 @@ exports.forgotPassword = async (req, res, next) => {
     await user.save({ validateBeforeSave: false });
     return res.status(500).send("Some Internal Error Occured!");
   }
+};
+
+exports.resetPassword = async (req, res, next) => {
+  const notHashedToken = req.params.token;
+  const hashedToken = createHash("sha256").update(notHashedToken).digest("hex");
+  const user = await User.findOne({
+    passwordResetToken: hashedToken,
+    passwordResetTokenExpiresIn: { $gt: Date.now() },
+  });
+
+  if (!user) {
+    return res.status(400).send("Token is incorrect or expired");
+  }
+  user.password = req.body.password;
+  user.passwordConfirm = req.body.passwordConfirm;
+  user.passwordResetTokenExpiresIn = undefined;
+  user.passwordResetToken = undefined;
+  await user.save();
+  //sign in token
+  createToken(user, 201, res);
+};
+
+exports.updatePassword = async (req, res, next) => {
+  //find user from req object
+  const user = await User.findById(req.user._id).select("+password");
+  const currentPassword = req.body.currentPassword;
+  if (!(await user.comparePassword(currentPassword, user.password))) {
+    return res.status(401).send("Please Enter correct Password");
+  }
+  //if password matches update
+  user.password = req.body.newPassword;
+  user.passwordConfirm = req.body.passwordConfirm;
+  await user.save(); // we do .save() but not findBYIDAndupdate because there is no validation in findbyidandupdate and presave hooks does not come inton action
+  createToken(user, 200, res);
+};
+
+exports.restrictTo = (...roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return res
+        .status(401)
+        .send("You don't have permissin to access this route");
+    }
+    next();
+  };
 };
