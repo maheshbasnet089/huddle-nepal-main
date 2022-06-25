@@ -3,7 +3,7 @@
 <br/>
 <p align="left"> <img src="https://komarev.com/ghpvc/?username=huddlenepal&label=Profile Views&color=blue&style=plastic" alt="huddlenepal" /> </p>
 
-We are **`Nepal-based promotion platform`** for huddles, exhibitions, meetings, events, and bootcamps fairs offering ways for launching and sharing events information on the web🌍.
+We are **`blah blah -based promotion platform`** for huddles, exhibitions, meetings, events, and bootcamps fairs offering ways for launching and sharing events information on the web🌍.
 
 Working 💼 [**`@Huddle Nepal`**](https://www.huddlenepal.com/) .
 
